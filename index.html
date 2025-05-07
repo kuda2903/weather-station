@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kudakwashe Weather Station</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            neon: '#00BFFF', // DeepSkyBlue
+            glass: 'rgba(255, 255, 255, 0.1)'
+          },
+          boxShadow: {
+            glass: '0 8px 32px 0 rgba( 31, 38, 135, 0.37 )'
+          },
+          backdropBlur: {
+            glass: 'blur(10px)'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dark bg-gray-900 text-white font-sans">
+  <div class="min-h-screen flex flex-col items-center justify-start p-6">
+    <header class="text-center mb-6">
+      <h1 class="text-4xl font-bold text-neon drop-shadow-lg"> Weather Station</h1>
+      <p class="text-sm mt-2 opacity-75">A minimalist, animated, mobile-first global weather & time dashboard</p>
+    </header>
+
+    <div id="weatherCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+      <!-- Cards will be inserted here -->
+    </div>
+  </div>
+
+  <script>
+    const cities = [
+      { name: "Mutare", timezone: "Africa/Harare" },
+      { name: "Cape Town", timezone: "Africa/Johannesburg" },
+      { name: "New York", timezone: "America/New_York" },
+      { name: "London", timezone: "Europe/London" },
+      { name: "Tokyo", timezone: "Asia/Tokyo" }, 
+      { name: "Paris", timezone: "Europe/Paris" },      
+      { name: "Sydney", timezone: "Australia/Sydney" },
+      { name: "New Delhi", timezone: "Asia/Kolkata" },
+      
+    ];
+
+    const apiKey = "4e082ac5ee32afca6d524baba42b6b66"; // Replace with your OpenWeatherMap API key
+    const weatherCards = document.getElementById("weatherCards");
+
+    function updateTime(card, timezone) {
+      const now = new Date().toLocaleString("en-US", { timeZone: timezone });
+      const timeElement = card.querySelector(".time");
+      timeElement.textContent = `Local time: ${now}`;
+    }
+
+    function createCard(city, temp, iconUrl, weatherDesc, timezone) {
+      const card = document.createElement("a");
+      card.href = `https://www.google.com/search?q=${encodeURIComponent(city)}`;
+      card.target = "_blank";
+      card.className = "rounded-2xl bg-glass backdrop-blur-glass shadow-glass p-6 transition-all hover:scale-105 hover:shadow-lg cursor-pointer";
+      card.innerHTML = `
+        <div class="text-xl font-semibold mb-2 text-blue-400">${city}</div>
+        <img class="w-16 h-16 mx-auto animate-bounce" src="${iconUrl}" alt="Weather icon">
+        <div class="text-3xl font-bold text-neon mt-2">${Math.round(temp)}°C</div>
+        <div class="text-sm mt-1 capitalize text-white/80">${weatherDesc}</div>
+        <div class="time text-sm mt-2 text-white/80">Loading...</div>
+      `;
+      weatherCards.appendChild(card);
+      updateTime(card, timezone);
+      setInterval(() => updateTime(card, timezone), 1000);
+    }
+
+    async function getWeather(cityObj) {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${cityObj.name}&units=metric&appid=${apiKey}`
+      );
+      const data = await response.json();
+      const temp = data.main.temp;
+      const iconCode = data.weather[0].icon;
+      const iconUrl = `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
+      const weatherDesc = data.weather[0].description;
+      createCard(cityObj.name, temp, iconUrl, weatherDesc, cityObj.timezone);
+    }
+
+    cities.forEach(getWeather);
+  </script>
+</body>
+
+</html>
